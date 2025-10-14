@@ -1,45 +1,53 @@
 #include <vector>
-#define MAX 210
-#define INF 2e9
+#include <algorithm>
 using namespace std;
 
-int Min(int A, int B) {
-    if (A < B) return A;
-    return B;
+vector<int> adj[210];
+int dp[210][210];
+const int inf = 987654321;
+
+// 그래프와 DP 테이블 초기화
+void init(vector<vector<int>> edge_list) {
+    for (int i = 0; i < 210; i++) adj[i].clear();
+    for (int i = 0; i < 210; i++)
+        for (int j = 0; j < 210; j++)
+            dp[i][j] = inf;
+
+    for (auto &e : edge_list) {
+        adj[e[0]].push_back(e[1]);
+        adj[e[1]].push_back(e[0]);
+    }
 }
 
 int solution(int n, int m, vector<vector<int>> edge_list, int k, vector<int> gps_log) {
-    vector<int> Node[MAX];
-    vector<vector<int>> DP(k, vector<int>(n + 1, INF));
+    int answer = 0;
+    init(edge_list);
 
-    for (int i = 0; i < edge_list.size(); i++) {
-        int N1 = edge_list[i][0];
-        int N2 = edge_list[i][1];
-        Node[N1].push_back(N2);
-        Node[N2].push_back(N1);
-    }
+    dp[0][gps_log[0]] = 0;
 
-    // DP[A][B] = C : 경로의 A번 지점이 B가 되었을 때, 수정해야 하는 횟수
-    // 초기값 = DP[0][gps_log[0]] = 0
-    DP[0][gps_log[0]] = 0;
+    // DP 수행
+    for (int i = 1; i < k - 1; i++) {
+        for (int j = 1; j <= n; j++) {
+            int add = (gps_log[i] == j ? 0 : 1);
 
-    for (int i = 1; i < k; i++) {
-        for (int Cur = 1; Cur <= n; Cur++) {
-            if (DP[i - 1][Cur] == INF) continue;
+            // 같은 노드에 머무르는 경우
+            dp[i][j] = min(dp[i][j], dp[i - 1][j] + add);
 
-            for (int j = 0; j < Node[Cur].size(); j++) {
-                int Next = Node[Cur][j];
-                int Alpha = 0;
-
-                if (gps_log[i] != Next) Alpha++;
-
-                DP[i][Next] = Min(DP[i][Next], DP[i - 1][Cur] + Alpha);
+            // 인접한 노드에서 오는 경우
+            for (auto p : adj[j]) {
+                dp[i][j] = min(dp[i][j], dp[i - 1][p] + add);
             }
         }
     }
 
-    if (DP[k - 1][gps_log[k - 1]] < INF) 
-        return DP[k - 1][gps_log[k - 1]];
+    // 도착지까지의 최소 수정 횟수 계산
+    answer = inf;
+    for (auto p : adj[gps_log.back()]) {
+        answer = min(answer, dp[gps_log.size() - 2][p]);
+    }
 
-    return -1;
+    if (answer > inf / 2)
+        answer = -1;
+
+    return answer;
 }
