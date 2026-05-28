@@ -1,46 +1,54 @@
-#include <bits/stdc++.h>
-#define fastio cin.tie(0)->sync_with_stdio(0)
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
 using namespace std;
 
-vector<int> candidates; // 이미 검사한 후보키를 등록
+vector<vector<int>> candidateKeys;
 
-bool isSubset(int target, int previous){
-    return ((target & previous) == previous); // 포함되는지
-}
-
-bool check_minimality(int target){
-    for(int previous : candidates){
-        if(isSubset(target, previous))
-            return false;
+bool checkMinimal(vector<int> cols){
+    for(auto key:candidateKeys){
+        bool contain=true;
+        for(int k : key){
+            if(find(cols.begin(), cols.end(), k)==cols.end()){
+                contain=false;
+                break;
+            }
+        }
+        if(contain) return false;
     }
     return true;
 }
+bool checkUnique(vector<int> cols, int c, vector<vector<string>> relation){
+    set<string> uniq;
+    for(int i=0; i<c; i++){
+        string s="";
+        for(int col: cols){
+            s+=relation[i][col];
+            s+=',';
+        }
+        uniq.insert(s);
+    }
+    return uniq.size()==c;
+}
 
-
-
-bool check_uniqueness(int i, vector<vector<string>> relation){
-    int k = relation[0].size();
-    vector<string> combined;
+int solution(vector<vector<string>> relation) {
+    int columnSize=relation[0].size();
+    int answer = 0;
     
-    for(auto v: relation){
-        string temp ="";
-        for (int j=0; j<k; j++)
-            if((i&(1<<j)) !=0 )
-                temp+=v[j];
-        if(find(combined.begin(), combined.end(), temp) != combined.end())
-            return false;
-        else
-            combined.push_back(temp);
+    for(int bit=1; bit<(1<<columnSize); bit++){
+        vector<int> cols;
+        for(int i=0; i<columnSize; i++){
+            if(bit & (1<<i)){
+                cols.push_back(i);
+            }
+        }
+        
+        if(checkMinimal(cols) && checkUnique(cols, relation.size(), relation)){
+            candidateKeys.push_back(cols);
+            answer++;
+        }
     }
-    return true;
-}
-
-int solution(vector<vector<string>> relation){
-    int k=relation[0].size();
-    for(int i=1; i<(1<<k); i++){
-        if(check_uniqueness(i, relation) && check_minimality(i))
-            candidates.push_back(i);
-    }
-    int answer = candidates.size();
+    
     return answer;
 }
