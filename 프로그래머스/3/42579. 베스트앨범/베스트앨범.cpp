@@ -1,44 +1,38 @@
 #include <string>
+#include <algorithm>
 #include <vector>
-#include <map>
-
+#include <unordered_map>
 using namespace std;
+
 
 vector<int> solution(vector<string> genres, vector<int> plays) {
     vector<int> answer;
-    // 장르별 횟수
-    map<string, int> music;
-    // 장르별로 무슨 노래가 몇번 저장됐는지
-    map<string, map<int, int>> musicList;
-    for(int i=0; i<genres.size(); i++){
-      music[genres[i]] += plays[i];
-      musicList[genres[i]][i]=plays[i];
+    unordered_map<string, int> total;
+    unordered_map<string, vector<pair<int,int>>> songs; // 장르별 곡 목록
+    int sizeG=genres.size();
+    // 1. 데이터 정리
+    for(int i=0; i<sizeG; i++){
+        total[genres[i]] += plays[i];
+        songs[genres[i]].push_back({plays[i],i}); // 장르, 재생 횟수, 고유 번호
     }
-    while(music.size()>0){
-      string genre="";
-      int max=0;
-      for(auto mu:music){
-        if(max<mu.second){
-          max=mu.second;
-          genre=mu.first;
-        }
-      }
-      // 2번 반복 (2곡 넣음)
-      for(int i=0; i<2; i++){
-        int val=0, ind=-1;
-        for(auto ml : musicList[genre]){
-          if(val<ml.second){
-            val=ml.second;
-            ind=ml.first;
-          }
-        }
-        // 노래가 0~1곡이면 반복문 탈출
-        if(ind==-1) break;
-        answer.push_back(ind);
-        musicList[genre].erase(ind);
-      }
-      music.erase(genre);
+    // 2. 장르별 총 재생수 내림차순
+    vector<pair<int, string>> order; // 재생 수, 장르
+    for(auto&[genre, cnt] : total){
+        order.push_back({cnt,genre});
     }
+    sort(order.begin(), order.end(), greater<>()); // 내림차순
 
+    // 3. 각 장르별로 상위 2개
+    for(auto&[cnt, genre] : order){
+        sort(songs[genre].begin(), songs[genre].end(), [](auto& a, auto& b){
+            if(a.first!=b.first) return a.first>b.first;
+            return a.second<b.second;
+        });
+        int take=min(2, (int)songs[genre].size());
+        for(int i=0; i<take; i++){
+            answer.push_back(songs[genre][i].second);
+        }
+    }
+    
     return answer;
 }
