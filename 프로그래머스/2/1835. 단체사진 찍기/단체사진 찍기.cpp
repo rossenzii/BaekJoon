@@ -40,7 +40,7 @@ int solution(int n, vector<string> data) {
         if(check)
             answer++;
 
-    }while(next_permutation(friends.begin(), friends.end()));
+    }while(next_permutation(friends.begin(), friends.end())); // 가능한 모든 배치에서..
 
     return answer;
 }
