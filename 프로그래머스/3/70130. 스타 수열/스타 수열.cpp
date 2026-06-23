@@ -1,24 +1,27 @@
-#include <bits/stdc++.h>
-#define fastio cin.tie(0)->sync_with_stdio(0)
+#include <string>
+#include <vector>
 using namespace std;
 
 int solution(vector<int> a) {
-    int answer = 0;
-    vector <int> cnt(a.size());
-    for(int i=0; i<a.size(); i++){
-        cnt[a[i]]++;
+    int n=a.size();
+    vector<int> count(n, 0);
+    for(int i=0; i<n; i++){
+        count[a[i]]++;
     }
-    for(int i=0; i<cnt.size();i++){
-        if(cnt[i]<=answer) continue;
-        int result = 0;
-        for(int j=0; j<a.size()-1; j++){
-            if((a[j]==i or a[j+1] ==i) and a[j]!=a[j+1]){
-                result++;
-                j++;
+    int maxLen=0;
+    for(int X=0; X<n; X++){
+        if(count[X]*2<=maxLen) continue;
+        int curLen=0;
+        for(int i=0; i<n-1;){
+            if(a[i]!=a[i+1]&&(a[i]==X || a[i+1]==X)){
+                curLen+=2;
+                i+=2;
+            }else{
+                i+=1;
             }
         }
-        answer = max(answer, result);
+        maxLen=max(maxLen, curLen);
+        
     }
-    
-    return answer*2;
+    return maxLen;
 }
